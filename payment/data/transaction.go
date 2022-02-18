@@ -6,6 +6,7 @@ type Card interface {
 	GetPan() string
 	SetPan(value string)
 	GetExpiry() string
+	SetExpiry(value string)
 }
 
 type CardHolder interface {
@@ -41,6 +42,10 @@ func (c cardImpl) GetPan() string {
 
 func (c cardImpl) GetExpiry() string {
 	return c.expiry
+}
+
+func (c *cardImpl) SetExpiry(value string) {
+	c.expiry = value
 }
 
 type cardHolderImpl struct {

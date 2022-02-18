@@ -3,10 +3,11 @@ package processor
 import (
 	b64 "encoding/base64"
 	"payment/data"
+	"strings"
 	"sync"
 )
 
-var processors = []processor{&panProcessor{}, &cardHolderProcessor{}}
+var processors = []processor{&panProcessor{}, &cardHolderProcessor{}, &expiryDateProcessor{}}
 
 type processor interface {
 	Encode(transaction data.Transaction)
@@ -24,7 +25,26 @@ func (p *panProcessor) Encode(transaction data.Transaction) {
 func (p *panProcessor) Decode(transaction data.Transaction) {
 	decode, _ := b64.StdEncoding.DecodeString(transaction.GetCard().GetPan())
 	//TODO check err
-	transaction.GetCard().SetPan(string(decode))
+	value := string(decode)
+	l := len(value)
+	value = strings.Repeat("*", l-4) + value[l-4:]
+	transaction.GetCard().SetPan(value)
+}
+
+type expiryDateProcessor struct {
+}
+
+func (e expiryDateProcessor) Encode(transaction data.Transaction) {
+	encode := b64.StdEncoding.EncodeToString([]byte(transaction.GetCard().GetExpiry()))
+	transaction.GetCard().SetExpiry(encode)
+}
+
+func (e expiryDateProcessor) Decode(transaction data.Transaction) {
+	decode, _ := b64.StdEncoding.DecodeString(transaction.GetCard().GetExpiry())
+	//TODO check err
+	l := len(string(decode))
+	value := strings.Repeat("*", l)
+	transaction.GetCard().SetExpiry(value)
 }
 
 type cardHolderProcessor struct {
@@ -38,7 +58,9 @@ func (p *cardHolderProcessor) Encode(transaction data.Transaction) {
 func (p *cardHolderProcessor) Decode(transaction data.Transaction) {
 	decode, _ := b64.StdEncoding.DecodeString(transaction.GetCardHolder().GetName())
 	//TODO check err
-	transaction.GetCardHolder().SetName(string(decode))
+	l := len(string(decode))
+	value := strings.Repeat("*", l)
+	transaction.GetCardHolder().SetName(value)
 }
 
 type ProcessorRunnner interface {
