@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"payment/data"
+	"payment/processor"
 	transactionRepo "payment/repository"
 	"payment/validator"
 	"sync"
@@ -38,8 +39,9 @@ func (t *transactionServiceImpl) Save(transaction data.Transaction) error {
 		return errors.New(sprintf)
 	}
 
+	processor.GetWriteInstance().Apply(transaction)
 	//defer audit
-	
+
 	return t.repo.Save(transaction)
 }
 

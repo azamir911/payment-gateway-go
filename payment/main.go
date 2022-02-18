@@ -12,7 +12,9 @@ func main() {
 
 	ts := service.GetInstance()
 
-	t := data.NewTransaction(1234567, 0, "EUR", "First Last", "email@domain.com", "4188846122476411", "0624")
+	t := data.NewTransaction(1234567, 10, "EUR", "First Last", "email@domain.com", "4188846122476411", "0624")
+
+	log.Logger.Info().Msgf("Saving %v", *t)
 
 	err := ts.Save(*t)
 
@@ -22,7 +24,7 @@ func main() {
 
 	log.Logger.Info().Msgf("Saved %v", *t)
 
-	transaction, err := ts.Get((*t).Invoice())
+	transaction, err := ts.Get((*t).GetInvoice())
 
 	log.Logger.Info().Msgf("Got %v", transaction)
 }

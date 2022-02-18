@@ -1,21 +1,25 @@
 package data
 
+import "fmt"
+
 type Card interface {
-	Pan() string
-	Expiry() string
+	GetPan() string
+	SetPan(value string)
+	GetExpiry() string
 }
 
 type CardHolder interface {
-	Name() string
-	Email() string
+	GetName() string
+	SetName(value string)
+	GetEmail() string
 }
 
 type Transaction interface {
-	Invoice() int
-	Amount() float64
-	Currency() string
-	CardHolder() CardHolder
-	Card() Card
+	GetInvoice() int
+	GetAmount() float64
+	GetCurrency() string
+	GetCardHolder() CardHolder
+	GetCard() Card
 }
 
 type cardImpl struct {
@@ -23,11 +27,19 @@ type cardImpl struct {
 	expiry string
 }
 
-func (c cardImpl) Pan() string {
+func (c *cardImpl) String() string {
+	return fmt.Sprintf("%v %v", c.GetPan(), cardImpl{}.GetExpiry())
+}
+
+func (c *cardImpl) SetPan(pan string) {
+	c.pan = pan
+}
+
+func (c cardImpl) GetPan() string {
 	return c.pan
 }
 
-func (c cardImpl) Expiry() string {
+func (c cardImpl) GetExpiry() string {
 	return c.expiry
 }
 
@@ -36,11 +48,15 @@ type cardHolderImpl struct {
 	email string
 }
 
-func (c cardHolderImpl) Name() string {
+func (c cardHolderImpl) GetName() string {
 	return c.name
 }
 
-func (c cardHolderImpl) Email() string {
+func (c cardHolderImpl) SetName(value string) {
+	c.name = value
+}
+
+func (c cardHolderImpl) GetEmail() string {
 	return c.email
 }
 
@@ -49,26 +65,30 @@ type transactionImpl struct {
 	amount     float64
 	currency   string
 	cardholder cardHolderImpl
-	card       cardImpl
+	card       *cardImpl
 }
 
-func (t transactionImpl) Invoice() int {
+func (t transactionImpl) String() string {
+	return fmt.Sprintf("{%v %v %v {%v %v} {%v %v}", t.GetInvoice(), t.GetAmount(), t.GetCurrency(), t.GetCardHolder().GetName(), t.GetCardHolder().GetEmail(), t.GetCard().GetPan(), t.GetCard().GetExpiry())
+}
+
+func (t transactionImpl) GetInvoice() int {
 	return t.invoice
 }
 
-func (t transactionImpl) Amount() float64 {
+func (t transactionImpl) GetAmount() float64 {
 	return t.amount
 }
 
-func (t transactionImpl) Currency() string {
+func (t transactionImpl) GetCurrency() string {
 	return t.currency
 }
 
-func (t transactionImpl) CardHolder() CardHolder {
+func (t transactionImpl) GetCardHolder() CardHolder {
 	return t.cardholder
 }
 
-func (t transactionImpl) Card() Card {
+func (t transactionImpl) GetCard() Card {
 	return t.card
 }
 
@@ -76,15 +96,15 @@ func NewTransaction(invoice int, amount float64, currency string, name string, e
 
 	//CardImpl := &CardImpl{pan: pan, expiry: expiry}
 	//cardHolder := &CardHolderImpl{
-	//	Name:  Name,
-	//	Email: Email,
+	//	GetName:  GetName,
+	//	GetEmail: GetEmail,
 	//}
 	var transaction Transaction = transactionImpl{
 		invoice:    invoice,
 		amount:     amount,
 		currency:   currency,
 		cardholder: cardHolderImpl{name: name, email: email},
-		card:       cardImpl{pan, expiry},
+		card:       &cardImpl{pan, expiry},
 	}
 
 	return &transaction

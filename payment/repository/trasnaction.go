@@ -45,8 +45,8 @@ type transactionRepositoryImpl struct {
 }
 
 func (t *transactionRepositoryImpl) Save(transaction data.Transaction) error {
-	//t.transactions[transaction.Invoice()] = transaction
-	t.transactions.Store(transaction.Invoice(), transaction)
+	//t.transactions[transaction.GetInvoice()] = transaction
+	t.transactions.Store(transaction.GetInvoice(), transaction)
 
 	return nil
 }
