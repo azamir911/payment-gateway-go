@@ -39,12 +39,17 @@ func (t *transactionServiceImpl) Save(transaction data.Transaction) error {
 		return errors.New(sprintf)
 	}
 
-	processor.GetWriteInstance().Apply(transaction)
+	processor.GetWriteInstance().ApplyEncode(transaction)
 	//defer audit
 
 	return t.repo.Save(transaction)
 }
 
 func (t *transactionServiceImpl) Get(invoice int) (data.Transaction, error) {
-	return t.repo.Get(invoice)
+	transaction, err := t.repo.Get(invoice)
+	if err != nil {
+		return nil, err
+	}
+	processor.GetWriteInstance().ApplyDecode(transaction)
+	return transaction, err
 }

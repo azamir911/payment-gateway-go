@@ -7,27 +7,41 @@ import (
 )
 
 type Processor interface {
-	Process(transaction data.Transaction)
+	Encode(transaction data.Transaction)
+	Decode(transaction data.Transaction)
 }
 
-type EncodePanProcessor struct {
+type PanProcessor struct {
 }
 
-func (p *EncodePanProcessor) Process(transaction data.Transaction) {
+func (p *PanProcessor) Encode(transaction data.Transaction) {
 	encode := b64.StdEncoding.EncodeToString([]byte(transaction.GetCard().GetPan()))
 	transaction.GetCard().SetPan(encode)
 }
 
-type EncodeCardHolderProcessor struct {
+func (p *PanProcessor) Decode(transaction data.Transaction) {
+	decode, _ := b64.StdEncoding.DecodeString(transaction.GetCard().GetPan())
+	//TODO check err
+	transaction.GetCard().SetPan(string(decode))
 }
 
-func (p *EncodeCardHolderProcessor) Process(transaction data.Transaction) {
+type CardHolderProcessor struct {
+}
+
+func (p *CardHolderProcessor) Encode(transaction data.Transaction) {
 	encode := b64.StdEncoding.EncodeToString([]byte(transaction.GetCardHolder().GetName()))
 	transaction.GetCardHolder().SetName(encode)
 }
 
+func (p *CardHolderProcessor) Decode(transaction data.Transaction) {
+	decode, _ := b64.StdEncoding.DecodeString(transaction.GetCardHolder().GetName())
+	//TODO check err
+	transaction.GetCardHolder().SetName(string(decode))
+}
+
 type ProcessorRunnner interface {
-	Apply(transaction data.Transaction)
+	ApplyEncode(transaction data.Transaction)
+	ApplyDecode(transaction data.Transaction)
 }
 
 var writeOnce = sync.Once{}
@@ -43,31 +57,36 @@ func GetWriteInstance() ProcessorRunnner {
 
 	return writeInstance
 }
-func (w *writeProcessorRunnerImpl) Apply(transaction data.Transaction) {
-	p := &EncodePanProcessor{}
-	c := &EncodeCardHolderProcessor{}
-	p.Process(transaction)
-	c.Process(transaction)
+func (w *writeProcessorRunnerImpl) ApplyEncode(transaction data.Transaction) {
+	p := &PanProcessor{}
+	c := &CardHolderProcessor{}
+	p.Encode(transaction)
+	c.Encode(transaction)
 }
 
-var readOnce = sync.Once{}
-
-var readInstance ProcessorRunnner
-
-type readProcessorRunnerImpl struct {
+func (w *writeProcessorRunnerImpl) ApplyDecode(transaction data.Transaction) {
+	p := &PanProcessor{}
+	c := &CardHolderProcessor{}
+	p.Decode(transaction)
+	c.Decode(transaction)
 }
 
-func GetReadInstance() ProcessorRunnner {
-	readOnce.Do(func() {
-		readInstance = &readProcessorRunnerImpl{}
-	})
-
-	return readInstance
-}
-
-func (r *readProcessorRunnerImpl) Apply(transaction data.Transaction) {
-	//TODO implement me
-	panic("implement me")
-}
-
-
+//var readOnce = sync.Once{}
+//
+//var readInstance ProcessorRunnner
+//
+//type readProcessorRunnerImpl struct {
+//}
+//
+//func GetReadInstance() ProcessorRunnner {
+//	readOnce.Do(func() {
+//		readInstance = &readProcessorRunnerImpl{}
+//	})
+//
+//	return readInstance
+//}
+//
+//func (r *readProcessorRunnerImpl) ApplyEncode(transaction data.Transaction) {
+//	//TODO implement me
+//	panic("implement me")
+//}

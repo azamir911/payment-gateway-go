@@ -52,7 +52,7 @@ func (c cardHolderImpl) GetName() string {
 	return c.name
 }
 
-func (c cardHolderImpl) SetName(value string) {
+func (c *cardHolderImpl) SetName(value string) {
 	c.name = value
 }
 
@@ -64,7 +64,7 @@ type transactionImpl struct {
 	invoice    int
 	amount     float64
 	currency   string
-	cardholder cardHolderImpl
+	cardholder *cardHolderImpl
 	card       *cardImpl
 }
 
@@ -103,7 +103,7 @@ func NewTransaction(invoice int, amount float64, currency string, name string, e
 		invoice:    invoice,
 		amount:     amount,
 		currency:   currency,
-		cardholder: cardHolderImpl{name: name, email: email},
+		cardholder: &cardHolderImpl{name: name, email: email},
 		card:       &cardImpl{pan, expiry},
 	}
 
