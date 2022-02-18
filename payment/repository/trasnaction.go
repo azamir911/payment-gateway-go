@@ -6,7 +6,6 @@ import (
 	"sync"
 )
 
-//var lock = &sync.Mutex{}
 var once = sync.Once{}
 
 type TransactionRepository interface {
@@ -16,17 +15,6 @@ type TransactionRepository interface {
 
 var instance TransactionRepository
 
-//func GetInstance() TransactionRepository {
-//	if instance == nil {
-//		lock.Lock()
-//		defer lock.Unlock()
-//		if instance == nil {
-//			instance = &transactionRepositoryImpl{}
-//		}
-//	}
-//
-//	return instance
-//}
 func GetInstance() TransactionRepository {
 	once.Do(func() {
 		instance = &transactionRepositoryImpl{}
@@ -34,10 +22,6 @@ func GetInstance() TransactionRepository {
 
 	return instance
 }
-
-//func NewTransactionService() TransactionRepository {
-//	return &transactionRepositoryImpl{}
-//}
 
 type transactionRepositoryImpl struct {
 	//transactions map[int]data.Transaction

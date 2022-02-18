@@ -6,6 +6,8 @@ import (
 	"sync"
 )
 
+var validators = []validator{&allFieldsPresentValidator{}, &positiveAmountValidator{}}
+
 type Valid struct {
 	errors map[string]string
 }
@@ -27,7 +29,7 @@ func (v *Valid) GetError() map[string]string {
 	return v.errors
 }
 
-type Validator interface {
+type validator interface {
 	Validate(transaction data.Transaction, valid Valid)
 }
 
@@ -36,34 +38,34 @@ type allFieldsPresentValidator struct {
 
 func (v allFieldsPresentValidator) Validate(transaction data.Transaction, valid Valid) {
 	if transaction.GetInvoice() == 0 {
-		valid.addError("invoice", "GetInvoice is required")
+		valid.addError("invoice", "Invoice is required")
 	}
 	if transaction.GetAmount() == 0 {
-		valid.addError("amount", "GetAmount is required.")
+		valid.addError("amount", "Amount is required.")
 	}
 	if len(strings.TrimSpace(transaction.GetCurrency())) == 0 {
-		valid.addError("currency", "GetCurrency is required.")
+		valid.addError("currency", "Currency is required.")
 	}
 	if transaction.GetCardHolder() == nil {
-		valid.addError("name", "GetName is required.")
-		valid.addError("email", "GetEmail is required.")
+		valid.addError("name", "Name is required.")
+		valid.addError("email", "Email is required.")
 	} else {
 		if len(strings.TrimSpace(transaction.GetCardHolder().GetName())) == 0 {
-			valid.addError("name", "GetName is required.")
+			valid.addError("name", "Name is required.")
 		}
 		if len(strings.TrimSpace(transaction.GetCardHolder().GetEmail())) == 0 {
-			valid.addError("email", "GetEmail is required.")
+			valid.addError("email", "Email is required.")
 		}
 	}
 	if transaction.GetCard() == nil {
-		valid.addError("pan", "GetPan is required.")
-		valid.addError("expiry", "GetExpiry is required.")
+		valid.addError("pan", "Pan is required.")
+		valid.addError("expiry", "Expiry is required.")
 	} else {
 		if len(strings.TrimSpace(transaction.GetCard().GetPan())) == 0 {
-			valid.addError("pan", "GetPan is required.")
+			valid.addError("pan", "Pan is required.")
 		}
 		if len(strings.TrimSpace(transaction.GetCard().GetExpiry())) == 0 {
-			valid.addError("expiry", "GetExpiry is required.")
+			valid.addError("expiry", "Expiry is required.")
 		}
 	}
 }
@@ -73,7 +75,7 @@ type positiveAmountValidator struct {
 
 func (v positiveAmountValidator) Validate(transaction data.Transaction, valid Valid) {
 	if transaction.GetAmount() <= 0 {
-		valid.addError("amount", "GetAmount should be a positive double.")
+		valid.addError("amount", "Amount should be a positive double.")
 	}
 }
 
@@ -97,10 +99,13 @@ type validatorServiceImpl struct {
 
 func (v *validatorServiceImpl) Validate(transaction data.Transaction) Valid {
 	valid := NewValid()
-	a := &allFieldsPresentValidator{}
-	a.Validate(transaction, *valid)
-
-	p := &positiveAmountValidator{}
-	p.Validate(transaction, *valid)
+	for _, v := range validators {
+		v.Validate(transaction, *valid)
+	}
+	//a := &allFieldsPresentValidator{}
+	//a.Validate(transaction, *valid)
+	//
+	//p := &positiveAmountValidator{}
+	//p.Validate(transaction, *valid)
 	return *valid
 }

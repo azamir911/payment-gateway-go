@@ -94,11 +94,6 @@ func (t transactionImpl) GetCard() Card {
 
 func NewTransaction(invoice int, amount float64, currency string, name string, email string, pan string, expiry string) *Transaction {
 
-	//CardImpl := &CardImpl{pan: pan, expiry: expiry}
-	//cardHolder := &CardHolderImpl{
-	//	GetName:  GetName,
-	//	GetEmail: GetEmail,
-	//}
 	var transaction Transaction = transactionImpl{
 		invoice:    invoice,
 		amount:     amount,
