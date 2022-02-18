@@ -20,7 +20,7 @@ const aConst int = 68
 
 const url = "http://services.explorecalifornia.org/json/tours.php"
 
-func main() {
+func main2() {
 	resp, err := http.Get(url)
 	checkError(err)
 
