@@ -1,48 +1,63 @@
 package service
 
 import (
-	"errors"
-	"fmt"
+	"github.com/rs/zerolog/log"
 	"payment/data"
 	"payment/processor"
 	transactionRepo "payment/repository"
-	"payment/validator"
 	"sync"
 )
 
 var once = sync.Once{}
 
 type TransactionService interface {
-	Save(transaction data.Transaction) error
+	Init()
+	Save(transaction data.Transaction)
 	Get(invoice int) (data.Transaction, error)
 }
 
 var instance TransactionService
 
-func GetInstance() TransactionService {
+type transactionServiceImpl struct {
+	repo transactionRepo.TransactionRepository
+	in   chan data.Transaction
+	out  chan<- data.Transaction
+}
+
+func GetInstance(in chan data.Transaction, out chan<- data.Transaction) TransactionService {
 	once.Do(func() {
-		instance = &transactionServiceImpl{transactionRepo.GetInstance()}
+		repository := transactionRepo.GetInstance()
+		instance = &transactionServiceImpl{repository, in, out}
+
 	})
 
 	return instance
 }
 
-type transactionServiceImpl struct {
-	//var repo = transactionRepo.GetInstance()
-	repo transactionRepo.TransactionRepository
+func (t *transactionServiceImpl) Init() {
+	go func() {
+		for transaction := range t.in {
+			log.Logger.Info().Msgf("Got transaction to save %v", transaction)
+			t.repo.Save(transaction)
+			t.out <- transaction
+		}
+	}()
 }
 
-func (t *transactionServiceImpl) Save(transaction data.Transaction) error {
-	validate := validator.GetInstance().Validate(transaction)
-	if !validate.IsValid() {
-		sprintf := fmt.Sprintf("%v", validate.GetError())
-		return errors.New(sprintf)
-	}
+func (t *transactionServiceImpl) Save(transaction data.Transaction) {
+	transaction.SetStatus("New")
+	t.in <- transaction
 
-	processor.GetWriteInstance().ApplyEncode(transaction)
-	//defer audit
-
-	return t.repo.Save(transaction)
+	//validate := validator.GetInstance().Validate(transaction)
+	//if !validate.IsValid() {
+	//	sprintf := fmt.Sprintf("%v", validate.GetError())
+	//	return errors.New(sprintf)
+	//}
+	//
+	//processor.GetInstance().ApplyEncode(transaction)
+	////defer audit
+	//
+	//return t.repo.Save(transaction)
 }
 
 func (t *transactionServiceImpl) Get(invoice int) (data.Transaction, error) {
@@ -50,6 +65,8 @@ func (t *transactionServiceImpl) Get(invoice int) (data.Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-	processor.GetWriteInstance().ApplyDecode(transaction)
+	if transaction.GetStatus() != "Declined" {
+		processor.GetInstance(nil).ApplyDecode(transaction)
+	}
 	return transaction, err
 }

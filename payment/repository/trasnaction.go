@@ -15,17 +15,17 @@ type TransactionRepository interface {
 
 var instance TransactionRepository
 
+type transactionRepositoryImpl struct {
+	//transactions map[int]data.Transaction
+	transactions sync.Map
+}
+
 func GetInstance() TransactionRepository {
 	once.Do(func() {
 		instance = &transactionRepositoryImpl{}
 	})
 
 	return instance
-}
-
-type transactionRepositoryImpl struct {
-	//transactions map[int]data.Transaction
-	transactions sync.Map
 }
 
 func (t *transactionRepositoryImpl) Save(transaction data.Transaction) error {

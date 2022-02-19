@@ -21,6 +21,10 @@ type Transaction interface {
 	GetCurrency() string
 	GetCardHolder() CardHolder
 	GetCard() Card
+	SetStatus(value string)
+	GetStatus() string
+	SetErrors(value map[string]string)
+	GetErrors() map[string]string
 }
 
 type cardImpl struct {
@@ -69,12 +73,14 @@ type transactionImpl struct {
 	invoice    int
 	amount     float64
 	currency   string
+	status     string
 	cardholder *cardHolderImpl
 	card       *cardImpl
+	errors     map[string]string
 }
 
 func (t transactionImpl) String() string {
-	return fmt.Sprintf("{%v %v %v {%v %v} {%v %v}", t.GetInvoice(), t.GetAmount(), t.GetCurrency(), t.GetCardHolder().GetName(), t.GetCardHolder().GetEmail(), t.GetCard().GetPan(), t.GetCard().GetExpiry())
+	return fmt.Sprintf("{%v %v %v %v {%v %v} {%v %v} [%v]", t.GetInvoice(), t.GetAmount(), t.GetCurrency(), t.GetStatus(), t.GetCardHolder().GetName(), t.GetCardHolder().GetEmail(), t.GetCard().GetPan(), t.GetCard().GetExpiry(), t.GetErrors())
 }
 
 func (t transactionImpl) GetInvoice() int {
@@ -97,14 +103,32 @@ func (t transactionImpl) GetCard() Card {
 	return t.card
 }
 
+func (t *transactionImpl) SetStatus(value string) {
+	t.status = value
+}
+
+func (t transactionImpl) GetStatus() string {
+	return t.status
+}
+
+func (t *transactionImpl) SetErrors(value map[string]string) {
+	t.errors = value
+}
+
+func (t transactionImpl) GetErrors() map[string]string {
+	return t.errors
+}
+
 func NewTransaction(invoice int, amount float64, currency string, name string, email string, pan string, expiry string) *Transaction {
 
-	var transaction Transaction = transactionImpl{
+	var transaction Transaction = &transactionImpl{
 		invoice:    invoice,
 		amount:     amount,
 		currency:   currency,
 		cardholder: &cardHolderImpl{name: name, email: email},
 		card:       &cardImpl{pan, expiry},
+		status:     "new",
+		errors:     nil,
 	}
 
 	return &transaction

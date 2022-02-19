@@ -2,7 +2,9 @@ package processor
 
 import (
 	"encoding/base64"
+	"github.com/rs/zerolog/log"
 	"payment/data"
+	transactionRepo "payment/repository"
 	"strings"
 	"sync"
 )
@@ -64,6 +66,7 @@ func (p *cardHolderProcessor) Decode(transaction data.Transaction) {
 }
 
 type ProcessorRunnner interface {
+	Init()
 	ApplyEncode(transaction data.Transaction)
 	ApplyDecode(transaction data.Transaction)
 }
@@ -72,22 +75,38 @@ var once = sync.Once{}
 var instance ProcessorRunnner
 
 type processorRunnerImpl struct {
+	repo transactionRepo.TransactionRepository
+	in   <-chan data.Transaction
 }
 
-func GetWriteInstance() ProcessorRunnner {
+func GetInstance(in <-chan data.Transaction) ProcessorRunnner {
 	once.Do(func() {
-		instance = &processorRunnerImpl{}
+		repository := transactionRepo.GetInstance()
+		instance = &processorRunnerImpl{repository, in}
 	})
 
 	return instance
 }
-func (w *processorRunnerImpl) ApplyEncode(transaction data.Transaction) {
+
+func (p *processorRunnerImpl) Init() {
+	go func() {
+		for transaction := range p.in {
+			log.Logger.Info().Msgf("Got transaction to process %v", transaction)
+			p.ApplyEncode(transaction)
+			transaction.SetStatus("Approved")
+			p.repo.Save(transaction)
+		}
+	}()
+
+}
+
+func (p *processorRunnerImpl) ApplyEncode(transaction data.Transaction) {
 	for _, p := range processors {
 		p.Encode(transaction)
 	}
 }
 
-func (w *processorRunnerImpl) ApplyDecode(transaction data.Transaction) {
+func (p *processorRunnerImpl) ApplyDecode(transaction data.Transaction) {
 	for _, p := range processors {
 		p.Decode(transaction)
 	}

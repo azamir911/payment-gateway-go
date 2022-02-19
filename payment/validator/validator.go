@@ -1,7 +1,9 @@
 package validator
 
 import (
+	"github.com/rs/zerolog/log"
 	"payment/data"
+	transactionRepo "payment/repository"
 	"strings"
 	"sync"
 )
@@ -83,18 +85,39 @@ var once = sync.Once{}
 var instance ValidatorService
 
 type ValidatorService interface {
+	Init()
 	Validate(transaction data.Transaction) Valid
 }
 
-func GetInstance() ValidatorService {
+type validatorServiceImpl struct {
+	repo transactionRepo.TransactionRepository
+	in   <-chan data.Transaction
+	out  chan<- data.Transaction
+}
+
+func GetInstance(in <-chan data.Transaction, out chan<- data.Transaction) ValidatorService {
 	once.Do(func() {
-		instance = &validatorServiceImpl{}
+		repository := transactionRepo.GetInstance()
+		instance = &validatorServiceImpl{repository, in, out}
 	})
 
 	return instance
 }
 
-type validatorServiceImpl struct {
+func (v *validatorServiceImpl) Init() {
+	go func() {
+		for transaction := range v.in {
+			log.Logger.Info().Msgf("Got transaction to validate %v", transaction)
+			valid := v.Validate(transaction)
+			if !valid.IsValid() {
+				transaction.SetStatus("Declined")
+				transaction.SetErrors(valid.GetError())
+				v.repo.Save(transaction)
+			} else {
+				v.out <- transaction
+			}
+		}
+	}()
 }
 
 func (v *validatorServiceImpl) Validate(transaction data.Transaction) Valid {
