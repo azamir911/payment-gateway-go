@@ -2,15 +2,14 @@ package main
 
 import (
 	"fmt"
-	_ "github.com/qodrorid/godaemon"
 	"github.com/rs/zerolog/log"
-	"net/http"
+	"payment/api"
+	"time"
 
 	"payment/data"
 	"payment/processor"
 	"payment/service"
 	"payment/validator"
-	"time"
 )
 
 var ts service.TransactionService
@@ -27,22 +26,32 @@ func main() {
 	ps := processor.GetInstance(validTransactionCh)
 	ps.Init()
 
-	execute()
+	fmt.Println("Start running")
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/index", func(rw http.ResponseWriter, req *http.Request) {
-		rw.Write([]byte("Assalamu'alaikum, golang!\n"))
-	})
-	log.Fatal().Msgf("%v", http.ListenAndServe(":3030", mux))
-	//log.Fatalln(http.ListenAndServe(":3030", mux))
+	//execute()
+
+	api.Serve()
+
+	//log.Info()
+	//mux := http.NewServeMux()
+	//mux.HandleFunc("/index", func(rw http.ResponseWriter, req *http.Request) {
+	//	//rw.Write([]byte("payment gateway started, golang!\n"))
+	//	fmt.Fprint(rw, "payment gateway started1, golang!\n")
+	//	log.Info().Msg("payment gateway started2, golang!\n")
+	//})
+	//err := http.ListenAndServe(":3030", mux)
+	//if err != nil {
+	//	log.Fatal().Msgf("%v", err)
+	//}
+	//
+	//fmt.Println("Running")
 }
 
 func execute() {
-	fmt.Println("Start running")
 
 	//ts := service.GetInstance()
 
-	t := data.NewTransaction(1234567, -10, "EUR", "First Last", "email@domain.com", "4188846122476411", "0624")
+	t := data.NewTransaction(1234567, 10, "EUR", "First Last", "email@domain.com", "4188846122476411", "0624")
 
 	//log.Printf("Saving %v", *t)
 	log.Logger.Info().Msgf("Saving %v", *t)

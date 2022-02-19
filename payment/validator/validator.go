@@ -125,10 +125,6 @@ func (v *validatorServiceImpl) Validate(transaction data.Transaction) Valid {
 	for _, v := range validators {
 		v.Validate(transaction, *valid)
 	}
-	//a := &allFieldsPresentValidator{}
-	//a.Validate(transaction, *valid)
-	//
-	//p := &positiveAmountValidator{}
-	//p.Validate(transaction, *valid)
+
 	return *valid
 }
