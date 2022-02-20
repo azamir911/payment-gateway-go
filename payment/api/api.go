@@ -9,12 +9,17 @@ import (
 func Serve() {
 
 	engine := gin.Default()
-	engine.GET("/payment", getAllInvoice)
+	engine.GET("/index", index)
+	engine.GET("/payments", getAllInvoice)
 	engine.GET("/payment/:id", getInvoice)
 	engine.POST("/payment", postInvoice)
-	engine.POST("/payment/close", closeChannels)
+	engine.POST("/close", closeChannels)
 
 	engine.Run("localhost:8080")
+
+}
+
+func index(context *gin.Context) {
 
 }
 

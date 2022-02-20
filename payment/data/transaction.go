@@ -2,6 +2,14 @@ package data
 
 import "fmt"
 
+type Status string
+
+const (
+	Status_New       Status = "New"
+	Status_Completed Status = "Completed"
+	Status_Rejected  Status = "Rejected"
+)
+
 type Card interface {
 	GetPan() string
 	SetPan(value string)
@@ -21,8 +29,8 @@ type Transaction interface {
 	GetCurrency() string
 	GetCardHolder() CardHolder
 	GetCard() Card
-	SetStatus(value string)
-	GetStatus() string
+	SetStatus(value Status)
+	GetStatus() Status
 	SetErrors(value map[string]string)
 	GetErrors() map[string]string
 }
@@ -73,7 +81,7 @@ type transactionImpl struct {
 	invoice    int
 	amount     float64
 	currency   string
-	status     string
+	status     Status
 	cardholder *cardHolderImpl
 	card       *cardImpl
 	errors     map[string]string
@@ -103,11 +111,11 @@ func (t transactionImpl) GetCard() Card {
 	return t.card
 }
 
-func (t *transactionImpl) SetStatus(value string) {
+func (t *transactionImpl) SetStatus(value Status) {
 	t.status = value
 }
 
-func (t transactionImpl) GetStatus() string {
+func (t transactionImpl) GetStatus() Status {
 	return t.status
 }
 
@@ -127,7 +135,7 @@ func NewTransaction(invoice int, amount float64, currency string, name string, e
 		currency:   currency,
 		cardholder: &cardHolderImpl{name: name, email: email},
 		card:       &cardImpl{pan, expiry},
-		status:     "new",
+		status:     Status_New,
 		errors:     nil,
 	}
 

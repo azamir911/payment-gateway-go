@@ -96,6 +96,7 @@ type validatorServiceImpl struct {
 	repo transactionRepo.TransactionRepository
 	in   <-chan data.Transaction
 	out  chan<- data.Transaction
+	done chan struct{}
 }
 
 func Init(in chan data.Transaction, out chan<- data.Transaction) {
@@ -108,7 +109,8 @@ func Init(in chan data.Transaction, out chan<- data.Transaction) {
 func GetInstance() ValidatorService {
 	once.Do(func() {
 		repository := transactionRepo.GetInstance()
-		v := &validatorServiceImpl{repository, chanIn, chanOut}
+		done := make(chan struct{})
+		v := &validatorServiceImpl{repository, chanIn, chanOut, done}
 		instance = v
 
 		go v.init()
@@ -118,15 +120,21 @@ func GetInstance() ValidatorService {
 }
 
 func (v *validatorServiceImpl) init() {
-	for transaction := range v.in {
-		log.Logger.Info().Msgf("Got transaction to validate %v", transaction)
-		valid := v.Validate(transaction)
-		if !valid.IsValid() {
-			transaction.SetStatus("Declined")
-			transaction.SetErrors(valid.GetErrors())
-			v.repo.Save(transaction)
-		} else {
-			v.out <- transaction
+	for {
+		select {
+		case transaction := <-v.in:
+			log.Logger.Info().Msgf("Got transaction to validate %v", transaction)
+			valid := v.Validate(transaction)
+			if !valid.IsValid() {
+				transaction.SetStatus(data.Status_Rejected)
+				transaction.SetErrors(valid.GetErrors())
+				v.repo.Save(transaction)
+			} else {
+				v.out <- transaction
+			}
+		case <-v.done:
+			log.Info().Msg("Transaction validator closed")
+			return
 		}
 	}
 }

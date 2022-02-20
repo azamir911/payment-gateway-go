@@ -16,6 +16,7 @@ var chanOut chan<- data.Transaction
 type TransactionService interface {
 	Save(transaction data.Transaction)
 	Get(invoice int) (data.Transaction, error)
+	Close()
 }
 
 var instance TransactionService
@@ -24,6 +25,7 @@ type transactionServiceImpl struct {
 	repo transactionRepo.TransactionRepository
 	in   chan data.Transaction
 	out  chan<- data.Transaction
+	done chan struct{}
 }
 
 func Init(in chan data.Transaction, out chan<- data.Transaction) {
@@ -36,7 +38,8 @@ func Init(in chan data.Transaction, out chan<- data.Transaction) {
 func GetInstance() TransactionService {
 	once.Do(func() {
 		repository := transactionRepo.GetInstance()
-		t := &transactionServiceImpl{repository, chanIn, chanOut}
+		done := make(chan struct{})
+		t := &transactionServiceImpl{repository, chanIn, chanOut, done}
 		instance = t
 
 		go t.init()
@@ -46,15 +49,21 @@ func GetInstance() TransactionService {
 }
 
 func (t *transactionServiceImpl) init() {
-	for transaction := range t.in {
-		log.Logger.Info().Msgf("Got transaction to save %v", transaction)
-		t.repo.Save(transaction)
-		t.out <- transaction
+	for {
+		select {
+		case transaction := <-t.in:
+			log.Logger.Info().Msgf("Got transaction to save %v", transaction)
+			t.repo.Save(transaction)
+			t.out <- transaction
+		case <-t.done:
+			log.Info().Msg("Transaction service closed")
+			return
+		}
 	}
 }
 
 func (t *transactionServiceImpl) Save(transaction data.Transaction) {
-	transaction.SetStatus("New")
+	transaction.SetStatus(data.Status_New)
 	t.in <- transaction
 }
 
@@ -63,8 +72,12 @@ func (t *transactionServiceImpl) Get(invoice int) (data.Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-	if transaction.GetStatus() != "Declined" {
+	if transaction.GetStatus() != data.Status_Rejected {
 		processor.GetInstance().ApplyDecode(transaction)
 	}
 	return transaction, err
+}
+
+func (t *transactionServiceImpl) Close() {
+	close(t.done)
 }

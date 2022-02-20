@@ -30,7 +30,7 @@ func main() {
 
 	fmt.Println("Start running")
 
-	//execute()
+	execute()
 
 	api.Serve()
 
