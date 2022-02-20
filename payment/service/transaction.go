@@ -16,6 +16,7 @@ var chanOut chan<- data.Transaction
 type TransactionService interface {
 	Save(transaction data.Transaction)
 	Get(invoice int) (data.Transaction, error)
+	GetAll() []data.Transaction
 	Close()
 }
 
@@ -76,6 +77,10 @@ func (t *transactionServiceImpl) Get(invoice int) (data.Transaction, error) {
 		processor.GetInstance().ApplyDecode(transaction)
 	}
 	return transaction, err
+}
+
+func (t *transactionServiceImpl) GetAll() []data.Transaction {
+	return t.repo.GetAll()
 }
 
 func (t *transactionServiceImpl) Close() {

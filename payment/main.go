@@ -63,7 +63,5 @@ func execute() {
 	time.Sleep(2 * time.Second)
 
 	transaction, _ := ts.Get((*t).GetInvoice())
-
-	//log.Printf("Got %v", transaction)
 	log.Logger.Info().Msgf("Got %v", transaction)
 }

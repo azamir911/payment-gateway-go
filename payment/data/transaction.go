@@ -36,8 +36,8 @@ type Transaction interface {
 }
 
 type cardImpl struct {
-	pan    string
-	expiry string
+	pan    string `pan`
+	expiry string `expiry`
 }
 
 func (c *cardImpl) String() string {
@@ -61,8 +61,8 @@ func (c *cardImpl) SetExpiry(value string) {
 }
 
 type cardHolderImpl struct {
-	name  string
-	email string
+	name  string `name`
+	email string `email`
 }
 
 func (c cardHolderImpl) GetName() string {
@@ -78,12 +78,12 @@ func (c cardHolderImpl) GetEmail() string {
 }
 
 type transactionImpl struct {
-	invoice    int
-	amount     float64
-	currency   string
+	invoice    int     `invoice`
+	amount     float64 `amount`
+	currency   string  `currency`
 	status     Status
-	cardholder *cardHolderImpl
-	card       *cardImpl
+	cardholder *cardHolderImpl `cardHolder`
+	card       *cardImpl       `card`
 	errors     map[string]string
 }
 

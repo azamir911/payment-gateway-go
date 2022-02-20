@@ -90,6 +90,7 @@ var instance ValidatorService
 
 type ValidatorService interface {
 	Validate(transaction data.Transaction) Valid
+	Close()
 }
 
 type validatorServiceImpl struct {
@@ -146,4 +147,8 @@ func (v *validatorServiceImpl) Validate(transaction data.Transaction) Valid {
 	}
 
 	return *valid
+}
+
+func (v *validatorServiceImpl) Close() {
+	close(v.done)
 }

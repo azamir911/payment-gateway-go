@@ -11,6 +11,7 @@ var once = sync.Once{}
 type TransactionRepository interface {
 	Save(transaction data.Transaction)
 	Get(invoice int) (data.Transaction, error)
+	GetAll() []data.Transaction
 }
 
 var instance TransactionRepository
@@ -34,4 +35,8 @@ func (t *transactionRepositoryImpl) Save(transaction data.Transaction) {
 
 func (t *transactionRepositoryImpl) Get(invoice int) (data.Transaction, error) {
 	return t.transactionsDB.Find(invoice)
+}
+
+func (t *transactionRepositoryImpl) GetAll() []data.Transaction {
+	return t.transactionsDB.FindAll()
 }
