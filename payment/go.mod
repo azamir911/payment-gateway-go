@@ -13,6 +13,7 @@ require (
 	github.com/go-playground/validator/v10 v10.4.1 // indirect
 	github.com/golang/protobuf v1.3.3 // indirect
 	github.com/google/gops v0.3.22 // indirect
+	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/json-iterator/go v1.1.9 // indirect
 	github.com/keybase/go-ps v0.0.0-20190827175125-91aafc93ba19 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect

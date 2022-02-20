@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"payment/api"
-	"time"
-
 	"payment/data"
 	"payment/processor"
 	"payment/service"
@@ -60,8 +58,8 @@ func execute() {
 
 	ts.Save(*t)
 
-	time.Sleep(2 * time.Second)
-
-	transaction, _ := ts.Get((*t).GetInvoice())
-	log.Logger.Info().Msgf("Got %v", transaction)
+	//time.Sleep(2 * time.Second)
+	//
+	//transaction, _ := ts.Get((*t).GetInvoice())
+	//log.Logger.Info().Msgf("Got %v", transaction)
 }

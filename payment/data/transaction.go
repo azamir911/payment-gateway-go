@@ -36,8 +36,8 @@ type Transaction interface {
 }
 
 type cardImpl struct {
-	pan    string `pan`
-	expiry string `expiry`
+	Pan    string `json:"pan"`
+	Expiry string `json:"expiry"`
 }
 
 func (c *cardImpl) String() string {
@@ -45,46 +45,46 @@ func (c *cardImpl) String() string {
 }
 
 func (c *cardImpl) SetPan(pan string) {
-	c.pan = pan
+	c.Pan = pan
 }
 
 func (c cardImpl) GetPan() string {
-	return c.pan
+	return c.Pan
 }
 
 func (c cardImpl) GetExpiry() string {
-	return c.expiry
+	return c.Expiry
 }
 
 func (c *cardImpl) SetExpiry(value string) {
-	c.expiry = value
+	c.Expiry = value
 }
 
 type cardHolderImpl struct {
-	name  string `name`
-	email string `email`
+	Name  string `json:"name"`
+	Email string `json:"email"`
 }
 
 func (c cardHolderImpl) GetName() string {
-	return c.name
+	return c.Name
 }
 
 func (c *cardHolderImpl) SetName(value string) {
-	c.name = value
+	c.Name = value
 }
 
 func (c cardHolderImpl) GetEmail() string {
-	return c.email
+	return c.Email
 }
 
 type transactionImpl struct {
-	invoice    int     `invoice`
-	amount     float64 `amount`
-	currency   string  `currency`
-	status     Status
-	cardholder *cardHolderImpl `cardHolder`
-	card       *cardImpl       `card`
-	errors     map[string]string
+	Invoice    int               `json:"invoice"`
+	Amount     float64           `json:"amount"`
+	Currency   string            `json:"currency"`
+	Status     Status            `json:"status"`
+	Cardholder *cardHolderImpl   `json:"cardHolder"`
+	Card       *cardImpl         `json:"card"`
+	Errors     map[string]string `json:"errors"`
 }
 
 func (t transactionImpl) String() string {
@@ -92,51 +92,56 @@ func (t transactionImpl) String() string {
 }
 
 func (t transactionImpl) GetInvoice() int {
-	return t.invoice
+	return t.Invoice
 }
 
 func (t transactionImpl) GetAmount() float64 {
-	return t.amount
+	return t.Amount
 }
 
 func (t transactionImpl) GetCurrency() string {
-	return t.currency
+	return t.Currency
 }
 
 func (t transactionImpl) GetCardHolder() CardHolder {
-	return t.cardholder
+	return t.Cardholder
 }
 
 func (t transactionImpl) GetCard() Card {
-	return t.card
+	return t.Card
 }
 
 func (t *transactionImpl) SetStatus(value Status) {
-	t.status = value
+	t.Status = value
 }
 
 func (t transactionImpl) GetStatus() Status {
-	return t.status
+	return t.Status
 }
 
 func (t *transactionImpl) SetErrors(value map[string]string) {
-	t.errors = value
+	t.Errors = value
 }
 
 func (t transactionImpl) GetErrors() map[string]string {
-	return t.errors
+	return t.Errors
+}
+
+func NewEmptyTransaction() *Transaction {
+	var transaction Transaction = &transactionImpl{}
+	return &transaction
 }
 
 func NewTransaction(invoice int, amount float64, currency string, name string, email string, pan string, expiry string) *Transaction {
 
 	var transaction Transaction = &transactionImpl{
-		invoice:    invoice,
-		amount:     amount,
-		currency:   currency,
-		cardholder: &cardHolderImpl{name: name, email: email},
-		card:       &cardImpl{pan, expiry},
-		status:     Status_New,
-		errors:     nil,
+		Invoice:    invoice,
+		Amount:     amount,
+		Currency:   currency,
+		Cardholder: &cardHolderImpl{Name: name, Email: email},
+		Card:       &cardImpl{pan, expiry},
+		Status:     Status_New,
+		Errors:     nil,
 	}
 
 	return &transaction
