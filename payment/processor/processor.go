@@ -95,6 +95,7 @@ func (p *processorRunnerImpl) Init() {
 			p.ApplyEncode(transaction)
 			transaction.SetStatus("Approved")
 			p.repo.Save(transaction)
+			log.Logger.Info().Msgf("Got transaction to process2 %v", transaction)
 		}
 	}()
 

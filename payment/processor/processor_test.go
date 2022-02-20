@@ -7,7 +7,7 @@ import (
 )
 
 func TestPanProcessor(t *testing.T) {
-	tr := data.NewTransaction(1234567, -10, "EUR", "First Last", "email@domain.com", "4188846122476411", "0624")
+	tr := data.NewTransaction(1234567, 10, "EUR", "First Last", "email@domain.com", "4188846122476411", "0624")
 
 	p := &panProcessor{}
 	p.Encode(*tr)

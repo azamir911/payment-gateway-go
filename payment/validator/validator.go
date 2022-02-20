@@ -21,13 +21,13 @@ func NewValid() *Valid {
 }
 
 func (v *Valid) IsValid() bool {
-	return len(v.errors) == 0
+	return v == nil || len(v.errors) == 0
 }
 func (v *Valid) addError(key string, value string) {
 	v.errors[key] = value
 }
 
-func (v *Valid) GetError() map[string]string {
+func (v *Valid) GetErrors() map[string]string {
 	return v.errors
 }
 
@@ -111,7 +111,7 @@ func (v *validatorServiceImpl) Init() {
 			valid := v.Validate(transaction)
 			if !valid.IsValid() {
 				transaction.SetStatus("Declined")
-				transaction.SetErrors(valid.GetError())
+				transaction.SetErrors(valid.GetErrors())
 				v.repo.Save(transaction)
 			} else {
 				v.out <- transaction
