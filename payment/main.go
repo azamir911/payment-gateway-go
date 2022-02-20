@@ -19,16 +19,18 @@ func main() {
 	savedTransactionCh := make(chan data.Transaction, 10)
 	validTransactionCh := make(chan data.Transaction, 10)
 
-	ts = service.GetInstance(newTransactionCh, savedTransactionCh)
-	ts.Init()
-	vs := validator.GetInstance(savedTransactionCh, validTransactionCh)
-	vs.Init()
-	ps := processor.GetInstance(validTransactionCh)
-	ps.Init()
+	service.Init(newTransactionCh, savedTransactionCh)
+	service.GetInstance()
+	validator.Init(savedTransactionCh, validTransactionCh)
+	validator.GetInstance()
+	processor.Init(validTransactionCh)
+	processor.GetInstance()
+
+	ts = service.GetInstance()
 
 	fmt.Println("Start running")
 
-	execute()
+	//execute()
 
 	api.Serve()
 

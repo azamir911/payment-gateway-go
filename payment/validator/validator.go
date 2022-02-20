@@ -82,10 +82,13 @@ func (v positiveAmountValidator) Validate(transaction data.Transaction, valid Va
 }
 
 var once = sync.Once{}
+var initOnce = sync.Once{}
+var chanIn chan data.Transaction
+var chanOut chan<- data.Transaction
+
 var instance ValidatorService
 
 type ValidatorService interface {
-	Init()
 	Validate(transaction data.Transaction) Valid
 }
 
@@ -95,29 +98,37 @@ type validatorServiceImpl struct {
 	out  chan<- data.Transaction
 }
 
-func GetInstance(in <-chan data.Transaction, out chan<- data.Transaction) ValidatorService {
+func Init(in chan data.Transaction, out chan<- data.Transaction) {
+	initOnce.Do(func() {
+		chanIn = in
+		chanOut = out
+	})
+}
+
+func GetInstance() ValidatorService {
 	once.Do(func() {
 		repository := transactionRepo.GetInstance()
-		instance = &validatorServiceImpl{repository, in, out}
+		v := &validatorServiceImpl{repository, chanIn, chanOut}
+		instance = v
+
+		go v.init()
 	})
 
 	return instance
 }
 
-func (v *validatorServiceImpl) Init() {
-	go func() {
-		for transaction := range v.in {
-			log.Logger.Info().Msgf("Got transaction to validate %v", transaction)
-			valid := v.Validate(transaction)
-			if !valid.IsValid() {
-				transaction.SetStatus("Declined")
-				transaction.SetErrors(valid.GetErrors())
-				v.repo.Save(transaction)
-			} else {
-				v.out <- transaction
-			}
+func (v *validatorServiceImpl) init() {
+	for transaction := range v.in {
+		log.Logger.Info().Msgf("Got transaction to validate %v", transaction)
+		valid := v.Validate(transaction)
+		if !valid.IsValid() {
+			transaction.SetStatus("Declined")
+			transaction.SetErrors(valid.GetErrors())
+			v.repo.Save(transaction)
+		} else {
+			v.out <- transaction
 		}
-	}()
+	}
 }
 
 func (v *validatorServiceImpl) Validate(transaction data.Transaction) Valid {

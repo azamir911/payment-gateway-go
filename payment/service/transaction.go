@@ -9,9 +9,11 @@ import (
 )
 
 var once = sync.Once{}
+var initOnce = sync.Once{}
+var chanIn chan data.Transaction
+var chanOut chan<- data.Transaction
 
 type TransactionService interface {
-	Init()
 	Save(transaction data.Transaction)
 	Get(invoice int) (data.Transaction, error)
 }
@@ -24,40 +26,36 @@ type transactionServiceImpl struct {
 	out  chan<- data.Transaction
 }
 
-func GetInstance(in chan data.Transaction, out chan<- data.Transaction) TransactionService {
+func Init(in chan data.Transaction, out chan<- data.Transaction) {
+	initOnce.Do(func() {
+		chanIn = in
+		chanOut = out
+	})
+}
+
+func GetInstance() TransactionService {
 	once.Do(func() {
 		repository := transactionRepo.GetInstance()
-		instance = &transactionServiceImpl{repository, in, out}
+		t := &transactionServiceImpl{repository, chanIn, chanOut}
+		instance = t
 
+		go t.init()
 	})
 
 	return instance
 }
 
-func (t *transactionServiceImpl) Init() {
-	go func() {
-		for transaction := range t.in {
-			log.Logger.Info().Msgf("Got transaction to save %v", transaction)
-			t.repo.Save(transaction)
-			t.out <- transaction
-		}
-	}()
+func (t *transactionServiceImpl) init() {
+	for transaction := range t.in {
+		log.Logger.Info().Msgf("Got transaction to save %v", transaction)
+		t.repo.Save(transaction)
+		t.out <- transaction
+	}
 }
 
 func (t *transactionServiceImpl) Save(transaction data.Transaction) {
 	transaction.SetStatus("New")
 	t.in <- transaction
-
-	//validate := validator.GetInstance().Validate(transaction)
-	//if !validate.IsValid() {
-	//	sprintf := fmt.Sprintf("%v", validate.GetError())
-	//	return errors.New(sprintf)
-	//}
-	//
-	//processor.GetInstance().ApplyEncode(transaction)
-	////defer audit
-	//
-	//return t.repo.Save(transaction)
 }
 
 func (t *transactionServiceImpl) Get(invoice int) (data.Transaction, error) {
@@ -66,7 +64,7 @@ func (t *transactionServiceImpl) Get(invoice int) (data.Transaction, error) {
 		return nil, err
 	}
 	if transaction.GetStatus() != "Declined" {
-		processor.GetInstance(nil).ApplyDecode(transaction)
+		processor.GetInstance().ApplyDecode(transaction)
 	}
 	return transaction, err
 }

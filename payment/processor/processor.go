@@ -66,12 +66,13 @@ func (p *cardHolderProcessor) Decode(transaction data.Transaction) {
 }
 
 type ProcessorRunnner interface {
-	Init()
 	ApplyEncode(transaction data.Transaction)
 	ApplyDecode(transaction data.Transaction)
 }
 
 var once = sync.Once{}
+var initOnce = sync.Once{}
+var chanIn chan data.Transaction
 var instance ProcessorRunnner
 
 type processorRunnerImpl struct {
@@ -79,26 +80,32 @@ type processorRunnerImpl struct {
 	in   <-chan data.Transaction
 }
 
-func GetInstance(in <-chan data.Transaction) ProcessorRunnner {
+func Init(in chan data.Transaction) {
+	initOnce.Do(func() {
+		chanIn = in
+	})
+}
+
+func GetInstance() ProcessorRunnner {
 	once.Do(func() {
 		repository := transactionRepo.GetInstance()
-		instance = &processorRunnerImpl{repository, in}
+		p := &processorRunnerImpl{repository, chanIn}
+		instance = p
+
+		go p.init()
 	})
 
 	return instance
 }
 
-func (p *processorRunnerImpl) Init() {
-	go func() {
-		for transaction := range p.in {
-			log.Logger.Info().Msgf("Got transaction to process %v", transaction)
-			p.ApplyEncode(transaction)
-			transaction.SetStatus("Approved")
-			p.repo.Save(transaction)
-			log.Logger.Info().Msgf("Got transaction to process2 %v", transaction)
-		}
-	}()
-
+func (p *processorRunnerImpl) init() {
+	for transaction := range p.in {
+		log.Logger.Info().Msgf("Got transaction to process %v", transaction)
+		p.ApplyEncode(transaction)
+		transaction.SetStatus("Approved")
+		p.repo.Save(transaction)
+		log.Logger.Info().Msgf("Got transaction to process2 %v", transaction)
+	}
 }
 
 func (p *processorRunnerImpl) ApplyEncode(transaction data.Transaction) {
