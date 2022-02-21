@@ -146,3 +146,18 @@ func NewTransaction(invoice int, amount float64, currency string, name string, e
 
 	return &transaction
 }
+
+func CloneTransaction(t Transaction) *Transaction {
+
+	var transaction Transaction = &transactionImpl{
+		Invoice:    t.GetInvoice(),
+		Amount:     t.GetAmount(),
+		Currency:   t.GetCurrency(),
+		Cardholder: &cardHolderImpl{Name: t.GetCardHolder().GetName(), Email: t.GetCardHolder().GetEmail()},
+		Card:       &cardImpl{t.GetCard().GetPan(), t.GetCard().GetExpiry()},
+		Status:     t.GetStatus(),
+		Errors:     t.GetErrors(),
+	}
+
+	return &transaction
+}

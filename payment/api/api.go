@@ -36,9 +36,9 @@ func Serve() {
 
 }
 
-func index2(writer http.ResponseWriter, request *http.Request) {
-	writeResponse(writer, http.StatusOK, "Welcome to the Payments App!", nil)
-}
+//func index2(writer http.ResponseWriter, request *http.Request) {
+//	writeResponse(writer, http.StatusOK, "Welcome to the Payments App!", nil)
+//}
 
 type Response struct {
 	Data  interface{} `json:"data,omitempty"`

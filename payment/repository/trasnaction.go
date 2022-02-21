@@ -34,7 +34,9 @@ func (t *transactionRepositoryImpl) Save(transaction data.Transaction) {
 }
 
 func (t *transactionRepositoryImpl) Get(invoice int) (data.Transaction, error) {
-	return t.transactionsDB.Find(invoice)
+	transaction, err := t.transactionsDB.Find(invoice)
+	clonedTransaction := data.CloneTransaction(transaction)
+	return *clonedTransaction, err
 }
 
 func (t *transactionRepositoryImpl) GetAll() []data.Transaction {
