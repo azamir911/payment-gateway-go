@@ -22,7 +22,7 @@ type TransactionService interface {
 
 var instance TransactionService
 
-type transactionServiceImpl struct {
+type transactionService struct {
 	repo transactionRepo.TransactionRepository
 	in   chan data.Transaction
 	out  chan<- data.Transaction
@@ -40,7 +40,7 @@ func GetInstance() TransactionService {
 	once.Do(func() {
 		repository := transactionRepo.GetInstance()
 		done := make(chan struct{})
-		t := &transactionServiceImpl{repository, chanIn, chanOut, done}
+		t := &transactionService{repository, chanIn, chanOut, done}
 		instance = t
 
 		go t.init()
@@ -49,7 +49,7 @@ func GetInstance() TransactionService {
 	return instance
 }
 
-func (t *transactionServiceImpl) init() {
+func (t *transactionService) init() {
 	for {
 		select {
 		case transaction := <-t.in:
@@ -63,12 +63,12 @@ func (t *transactionServiceImpl) init() {
 	}
 }
 
-func (t *transactionServiceImpl) Save(transaction data.Transaction) {
+func (t *transactionService) Save(transaction data.Transaction) {
 	transaction.SetStatus(data.Status_New)
 	t.in <- transaction
 }
 
-func (t *transactionServiceImpl) Get(invoice int) (data.Transaction, error) {
+func (t *transactionService) Get(invoice int) (data.Transaction, error) {
 	transaction, err := t.repo.Get(invoice)
 	if err != nil {
 		return nil, err
@@ -79,10 +79,10 @@ func (t *transactionServiceImpl) Get(invoice int) (data.Transaction, error) {
 	return transaction, err
 }
 
-func (t *transactionServiceImpl) GetAll() []data.Transaction {
+func (t *transactionService) GetAll() []data.Transaction {
 	return t.repo.GetAll()
 }
 
-func (t *transactionServiceImpl) Close() {
+func (t *transactionService) Close() {
 	close(t.done)
 }

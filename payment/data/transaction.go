@@ -77,7 +77,7 @@ func (c cardHolderImpl) GetEmail() string {
 	return c.Email
 }
 
-type transactionImpl struct {
+type transaction struct {
 	Invoice    int               `json:"invoice"`
 	Amount     float64           `json:"amount"`
 	Currency   string            `json:"currency"`
@@ -87,54 +87,54 @@ type transactionImpl struct {
 	Errors     map[string]string `json:"errors"`
 }
 
-func (t transactionImpl) String() string {
+func (t transaction) String() string {
 	return fmt.Sprintf("{%v %v %v %v {%v %v} {%v %v} [%v]", t.GetInvoice(), t.GetAmount(), t.GetCurrency(), t.GetStatus(), t.GetCardHolder().GetName(), t.GetCardHolder().GetEmail(), t.GetCard().GetPan(), t.GetCard().GetExpiry(), t.GetErrors())
 }
 
-func (t transactionImpl) GetInvoice() int {
+func (t transaction) GetInvoice() int {
 	return t.Invoice
 }
 
-func (t transactionImpl) GetAmount() float64 {
+func (t transaction) GetAmount() float64 {
 	return t.Amount
 }
 
-func (t transactionImpl) GetCurrency() string {
+func (t transaction) GetCurrency() string {
 	return t.Currency
 }
 
-func (t transactionImpl) GetCardHolder() CardHolder {
+func (t transaction) GetCardHolder() CardHolder {
 	return t.Cardholder
 }
 
-func (t transactionImpl) GetCard() Card {
+func (t transaction) GetCard() Card {
 	return t.Card
 }
 
-func (t *transactionImpl) SetStatus(value Status) {
+func (t *transaction) SetStatus(value Status) {
 	t.Status = value
 }
 
-func (t transactionImpl) GetStatus() Status {
+func (t transaction) GetStatus() Status {
 	return t.Status
 }
 
-func (t *transactionImpl) SetErrors(value map[string]string) {
+func (t *transaction) SetErrors(value map[string]string) {
 	t.Errors = value
 }
 
-func (t transactionImpl) GetErrors() map[string]string {
+func (t transaction) GetErrors() map[string]string {
 	return t.Errors
 }
 
 func NewEmptyTransaction() *Transaction {
-	var transaction Transaction = &transactionImpl{}
+	var transaction Transaction = &transaction{}
 	return &transaction
 }
 
 func NewTransaction(invoice int, amount float64, currency string, name string, email string, pan string, expiry string) Transaction {
 
-	var transaction Transaction = &transactionImpl{
+	var transaction Transaction = &transaction{
 		Invoice:    invoice,
 		Amount:     amount,
 		Currency:   currency,
@@ -149,7 +149,7 @@ func NewTransaction(invoice int, amount float64, currency string, name string, e
 
 func CloneTransaction(t Transaction) *Transaction {
 
-	var transaction Transaction = &transactionImpl{
+	var transaction Transaction = &transaction{
 		Invoice:    t.GetInvoice(),
 		Amount:     t.GetAmount(),
 		Currency:   t.GetCurrency(),

@@ -76,7 +76,7 @@ var initOnce = sync.Once{}
 var chanIn chan data.Transaction
 var instance ProcessorRunnner
 
-type processorRunnerImpl struct {
+type processorRunner struct {
 	repo transactionRepo.TransactionRepository
 	in   <-chan data.Transaction
 	done chan struct{}
@@ -92,7 +92,7 @@ func GetInstance() ProcessorRunnner {
 	once.Do(func() {
 		repository := transactionRepo.GetInstance()
 		done := make(chan struct{})
-		p := &processorRunnerImpl{repository, chanIn, done}
+		p := &processorRunner{repository, chanIn, done}
 		instance = p
 
 		go p.init()
@@ -101,7 +101,7 @@ func GetInstance() ProcessorRunnner {
 	return instance
 }
 
-func (p *processorRunnerImpl) init() {
+func (p *processorRunner) init() {
 	for {
 		select {
 		case transaction := <-p.in:
@@ -117,18 +117,18 @@ func (p *processorRunnerImpl) init() {
 	}
 }
 
-func (p *processorRunnerImpl) ApplyEncode(transaction data.Transaction) {
+func (p *processorRunner) ApplyEncode(transaction data.Transaction) {
 	for _, p := range processors {
 		p.Encode(transaction)
 	}
 }
 
-func (p *processorRunnerImpl) ApplyDecode(transaction data.Transaction) {
+func (p *processorRunner) ApplyDecode(transaction data.Transaction) {
 	for _, p := range processors {
 		p.Decode(transaction)
 	}
 }
 
-func (p *processorRunnerImpl) Close() {
+func (p *processorRunner) Close() {
 	close(p.done)
 }

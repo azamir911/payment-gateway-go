@@ -16,24 +16,24 @@ type TransactionRepository interface {
 
 var instance TransactionRepository
 
-type transactionRepositoryImpl struct {
+type transactionRepository struct {
 	transactionsDB *db.TransactionDB
 }
 
 func GetInstance() TransactionRepository {
 	once.Do(func() {
 		transactionsDB := db.NewTransactionsDB()
-		instance = &transactionRepositoryImpl{transactionsDB}
+		instance = &transactionRepository{transactionsDB}
 	})
 
 	return instance
 }
 
-func (t *transactionRepositoryImpl) Save(transaction data.Transaction) {
+func (t *transactionRepository) Save(transaction data.Transaction) {
 	t.transactionsDB.Upsert(transaction)
 }
 
-func (t *transactionRepositoryImpl) Get(invoice int) (data.Transaction, error) {
+func (t *transactionRepository) Get(invoice int) (data.Transaction, error) {
 	transaction, err := t.transactionsDB.Find(invoice)
 	if err != nil {
 		return nil, err
@@ -42,6 +42,6 @@ func (t *transactionRepositoryImpl) Get(invoice int) (data.Transaction, error) {
 	return *clonedTransaction, err
 }
 
-func (t *transactionRepositoryImpl) GetAll() []data.Transaction {
+func (t *transactionRepository) GetAll() []data.Transaction {
 	return t.transactionsDB.FindAll()
 }
