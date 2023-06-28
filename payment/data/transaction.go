@@ -132,7 +132,7 @@ func NewEmptyTransaction() *Transaction {
 	return &transaction
 }
 
-func NewTransaction(invoice int, amount float64, currency string, name string, email string, pan string, expiry string) *Transaction {
+func NewTransaction(invoice int, amount float64, currency string, name string, email string, pan string, expiry string) Transaction {
 
 	var transaction Transaction = &transactionImpl{
 		Invoice:    invoice,
@@ -144,7 +144,7 @@ func NewTransaction(invoice int, amount float64, currency string, name string, e
 		Errors:     nil,
 	}
 
-	return &transaction
+	return transaction
 }
 
 func CloneTransaction(t Transaction) *Transaction {

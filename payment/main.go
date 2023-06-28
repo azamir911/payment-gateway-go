@@ -54,9 +54,9 @@ func execute() {
 	t := data.NewTransaction(1234567, 10, "EUR", "First Last", "email@domain.com", "4188846122476411", "0624")
 
 	//log.Printf("Saving %v", *t)
-	log.Logger.Info().Msgf("Saving %v", *t)
+	log.Logger.Info().Msgf("Saving %v", t)
 
-	ts.Save(*t)
+	ts.Save(t)
 
 	//time.Sleep(2 * time.Second)
 	//

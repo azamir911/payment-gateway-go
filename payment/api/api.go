@@ -74,8 +74,16 @@ func getAllInvoice(context *gin.Context) {
 
 func getInvoice(context *gin.Context) {
 	id := context.Param("id")
-	invoice, _ := strconv.Atoi(id)
-	transaction, _ := service.GetInstance().Get(invoice)
+	invoice, err := strconv.Atoi(id)
+	if err != nil {
+		writeResponse(context.Writer, http.StatusBadRequest, nil, err)
+		return
+	}
+	transaction, err := service.GetInstance().Get(invoice)
+	if err != nil {
+		writeResponse(context.Writer, http.StatusNotFound, nil, err)
+		return
+	}
 	writeResponse(context.Writer, http.StatusOK, transaction, nil)
 }
 

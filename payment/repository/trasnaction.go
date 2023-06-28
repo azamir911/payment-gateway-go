@@ -35,6 +35,9 @@ func (t *transactionRepositoryImpl) Save(transaction data.Transaction) {
 
 func (t *transactionRepositoryImpl) Get(invoice int) (data.Transaction, error) {
 	transaction, err := t.transactionsDB.Find(invoice)
+	if err != nil {
+		return nil, err
+	}
 	clonedTransaction := data.CloneTransaction(transaction)
 	return *clonedTransaction, err
 }
