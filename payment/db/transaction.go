@@ -10,10 +10,6 @@ type TransactionDB struct {
 	transactions sync.Map
 }
 
-func NewTransactionsDB() *TransactionDB {
-	return &TransactionDB{}
-}
-
 func (t *TransactionDB) Find(invoice int) (data.Transaction, error) {
 	transaction, ok := t.transactions.Load(invoice)
 	if !ok {

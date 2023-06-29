@@ -5,20 +5,10 @@ import (
 	"payment/data"
 	"payment/processor"
 	transactionRepo "payment/repository"
-	"sync"
 )
 
-var once = sync.Once{}
-var initOnce = sync.Once{}
 var chanIn chan data.Transaction
 var chanOut chan<- data.Transaction
-
-type TransactionService interface {
-	Save(transaction data.Transaction)
-	Get(invoice int) (data.Transaction, error)
-	GetAll() []data.Transaction
-	Close()
-}
 
 var instance TransactionService
 
@@ -27,26 +17,6 @@ type transactionService struct {
 	in   chan data.Transaction
 	out  chan<- data.Transaction
 	done chan struct{}
-}
-
-func Init(in chan data.Transaction, out chan<- data.Transaction) {
-	initOnce.Do(func() {
-		chanIn = in
-		chanOut = out
-	})
-}
-
-func GetInstance() TransactionService {
-	once.Do(func() {
-		repository := transactionRepo.GetInstance()
-		done := make(chan struct{})
-		t := &transactionService{repository, chanIn, chanOut, done}
-		instance = t
-
-		go t.init()
-	})
-
-	return instance
 }
 
 func (t *transactionService) init() {
@@ -64,7 +34,7 @@ func (t *transactionService) init() {
 }
 
 func (t *transactionService) Save(transaction data.Transaction) {
-	transaction.SetStatus(data.Status_New)
+	transaction.SetStatus(data.StatusNew)
 	t.in <- transaction
 }
 
@@ -73,7 +43,7 @@ func (t *transactionService) Get(invoice int) (data.Transaction, error) {
 	if err != nil {
 		return nil, err
 	}
-	if transaction.GetStatus() != data.Status_Rejected {
+	if transaction.GetStatus() != data.StatusRejected {
 		processor.GetInstance().ApplyDecode(transaction)
 	}
 	return transaction, err

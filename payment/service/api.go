@@ -1,4 +1,4 @@
-package validator
+package service
 
 import (
 	"payment/data"
@@ -9,13 +9,11 @@ import (
 var initOnce = sync.Once{}
 var instanceOnce = sync.Once{}
 
-type ValidatorService interface {
-	Validate(transaction data.Transaction) Valid
+type TransactionService interface {
+	Save(transaction data.Transaction)
+	Get(invoice int) (data.Transaction, error)
+	GetAll() []data.Transaction
 	Close()
-}
-
-type validator interface {
-	Validate(transaction data.Transaction, valid Valid)
 }
 
 func Init(in chan data.Transaction, out chan<- data.Transaction) {
@@ -25,14 +23,14 @@ func Init(in chan data.Transaction, out chan<- data.Transaction) {
 	})
 }
 
-func GetInstance() ValidatorService {
+func GetInstance() TransactionService {
 	instanceOnce.Do(func() {
 		repository := transactionRepo.GetInstance()
 		done := make(chan struct{})
-		v := &validatorService{repository, chanIn, chanOut, done}
-		instance = v
+		t := &transactionService{repository, chanIn, chanOut, done}
+		instance = t
 
-		go v.init()
+		go t.init()
 	})
 
 	return instance

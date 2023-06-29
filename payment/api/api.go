@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"payment/data"
 
 	//"github.com/gorilla/mux"
@@ -32,7 +33,9 @@ func Serve() {
 	engine.POST("/payment", postInvoice)
 	engine.POST("/close", closeChannels)
 
-	engine.Run("localhost:8080")
+	if err := engine.Run("localhost:8080"); err != nil {
+		log.Logger.Panic().Msgf("Error starting service %v", err)
+	}
 
 }
 
@@ -59,7 +62,8 @@ func writeResponse(w http.ResponseWriter, status int, data interface{}, err erro
 	}
 	err = json.NewEncoder(w).Encode(data)
 	if err := err; err != nil {
-		fmt.Fprintf(w, "error encoding resp %v:%s", resp, err)
+		log.Logger.Err(err).Msgf("error encoding resp %v", resp)
+		//fmt.Fprintf(w, "error encoding resp %v:%s", resp, err)
 	}
 }
 
@@ -90,7 +94,10 @@ func getInvoice(context *gin.Context) {
 func postInvoice(context *gin.Context) {
 	decoder := json.NewDecoder(context.Request.Body)
 	transaction := data.NewEmptyTransaction()
-	decoder.Decode(transaction)
+	if err := decoder.Decode(transaction); err != nil {
+		writeResponse(context.Writer, http.StatusBadRequest, nil, err)
+		return
+	}
 	service.GetInstance().Save(*transaction)
 	writeResponse(context.Writer, http.StatusCreated, "Create new transaction", nil)
 }

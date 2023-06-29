@@ -4,34 +4,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"payment/data"
 	transactionRepo "payment/repository"
-	"sync"
 )
 
 var validators = []validator{&allFieldsPresentValidator{}, &positiveAmountValidator{}}
 
-type Valid struct {
-	errors map[string]string
-}
-
-func NewValid() *Valid {
-	var v = Valid{}
-	v.errors = make(map[string]string)
-	return &v
-}
-
-func (v *Valid) IsValid() bool {
-	return v == nil || len(v.errors) == 0
-}
-func (v *Valid) addError(key string, value string) {
-	v.errors[key] = value
-}
-
-func (v *Valid) GetErrors() map[string]string {
-	return v.errors
-}
-
-var once = sync.Once{}
-var initOnce = sync.Once{}
 var chanIn chan data.Transaction
 var chanOut chan<- data.Transaction
 
@@ -44,26 +20,6 @@ type validatorService struct {
 	done chan struct{}
 }
 
-func Init(in chan data.Transaction, out chan<- data.Transaction) {
-	initOnce.Do(func() {
-		chanIn = in
-		chanOut = out
-	})
-}
-
-func GetInstance() ValidatorService {
-	once.Do(func() {
-		repository := transactionRepo.GetInstance()
-		done := make(chan struct{})
-		v := &validatorService{repository, chanIn, chanOut, done}
-		instance = v
-
-		go v.init()
-	})
-
-	return instance
-}
-
 func (v *validatorService) init() {
 	for {
 		select {
@@ -71,7 +27,7 @@ func (v *validatorService) init() {
 			log.Logger.Info().Msgf("Got transaction to validate %v", transaction)
 			valid := v.Validate(transaction)
 			if !valid.IsValid() {
-				transaction.SetStatus(data.Status_Rejected)
+				transaction.SetStatus(data.StatusRejected)
 				transaction.SetErrors(valid.GetErrors())
 				v.repo.Save(transaction)
 			} else {
