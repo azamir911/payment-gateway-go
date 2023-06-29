@@ -7,8 +7,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"payment/data"
 
-	//"github.com/gorilla/mux"
-	//"github.com/rs/zerolog/log"
 	"net/http"
 	"payment/processor"
 	"payment/service"
@@ -17,15 +15,6 @@ import (
 )
 
 func Serve() {
-	//r := mux.NewRouter()
-	//r.Methods("GET").Path("/index").Handler(http.HandlerFunc(index2))
-	//
-	//fmt.Println("Listening on localhost:8080...")
-	//err := http.ListenAndServe(":8080", r)
-	//if err != nil {
-	//	log.Fatal().Msgf("%v", err)
-	//}
-	//
 	engine := gin.Default()
 	engine.GET("/index", index)
 	engine.GET("/payments", getAllInvoice)
@@ -38,10 +27,6 @@ func Serve() {
 	}
 
 }
-
-//func index2(writer http.ResponseWriter, request *http.Request) {
-//	writeResponse(writer, http.StatusOK, "Welcome to the Payments App!", nil)
-//}
 
 type Response struct {
 	Data  interface{} `json:"data,omitempty"`
