@@ -10,48 +10,6 @@ const (
 	StatusRejected  Status = "Rejected"
 )
 
-type card struct {
-	Pan    string `json:"pan"`
-	Expiry string `json:"expiry"`
-}
-
-func (c *card) String() string {
-	return fmt.Sprintf("%v %v", c.GetPan(), c.GetExpiry())
-}
-
-func (c *card) SetPan(pan string) {
-	c.Pan = pan
-}
-
-func (c *card) GetPan() string {
-	return c.Pan
-}
-
-func (c *card) GetExpiry() string {
-	return c.Expiry
-}
-
-func (c *card) SetExpiry(value string) {
-	c.Expiry = value
-}
-
-type cardHolder struct {
-	Name  string `json:"name"`
-	Email string `json:"email"`
-}
-
-func (c *cardHolder) GetName() string {
-	return c.Name
-}
-
-func (c *cardHolder) SetName(value string) {
-	c.Name = value
-}
-
-func (c *cardHolder) GetEmail() string {
-	return c.Email
-}
-
 type transaction struct {
 	Invoice    int               `json:"invoice"`
 	Amount     float64           `json:"amount"`
